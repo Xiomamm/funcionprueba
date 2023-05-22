@@ -60,16 +60,16 @@ def create_table(dbconnection):
             out_val = dbcursor.var(str)
 
             dbcursor.execute("""begin
-                            execute immediate 'DROP TABLE LOAD_TABLE';
+                            execute immediate 'DROP TABLE DATOS_CLIENTE';
                             exception when others then
                             if sqlcode <> -942 then
                                 raise;
                             end if;
                         end;""")
-            dbcursor.execute("""CREATE TABLE LOAD_TABLE (
+            dbcursor.execute("""CREATE TABLE DATOS_CLIENTE (
                         ID number(9) not null,
-                        NAME varchar2(500),
-                        LAST_NAME varchar2(2000),
+                        NOMBRE varchar2(500),
+                        APELLIDO varchar2(2000),
                         constraint TestTempTable_pk primary key (ID))""")
 
             end_query = timer()  
@@ -82,12 +82,12 @@ def create_table(dbconnection):
 def load_data(input_csv_text, dbconnection):
     try:
         reader = csv.DictReader(input_csv_text.split('\n'), delimiter=',')
-        info_db = [(line['ID'], line['NAME'], line['LAST_NAME']) for line in reader]
+        info_db = [(line['ID'], line['NOMBRE'], line['APELLIDO']) for line in reader]
 
         with dbconnection.cursor() as dbcursor:        
             logging.getLogger().info("Inserting .....")
 
-            dbcursor.executemany("INSERT INTO LOAD_TABLE VALUES (:1, :2, :3)", info_db, batcherrors=True)
+            dbcursor.executemany("INSERT INTO DATOS_CLIENTE VALUES (:1, :2, :3)", info_db, batcherrors=True)
             dbconnection.commit()
             for error in dbcursor.getbatcherrors():                    
                 logging.getLogger().error(error.message)
